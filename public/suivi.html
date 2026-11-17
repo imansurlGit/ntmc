@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#071739" />
+  <title>Suivi du badge – NTMC</title>
+  <!-- Page autonome : un seul fichier, aucune police ni feuille de style externe,
+       pour s'ouvrir et démarrer instantanément même avec un réseau faible. -->
+  <style>
+    :root {
+      --navy-950: #040d24; --navy-900: #071739; --navy-600: #123172; --primary: #0b2463;
+      --gold: #d8b56a; --gold-text: #9a7428; --red: #e30a17; --ok: #1f8a4c; --danger: #b42318;
+      --text: #0b1a3a; --muted: #5b6785; --line: #dbe0ea; --soft: #f4f6fb; --tint: #eef2fa;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html, body { margin: 0; }
+    body {
+      min-height: 100vh; font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      color: var(--text); background: #fff; -webkit-font-smoothing: antialiased;
+    }
+    header {
+      padding: 22px 16px 64px; text-align: center; color: #fff; border-bottom: 3px solid var(--gold);
+      background: radial-gradient(ellipse 80% 90% at 50% 20%, var(--navy-600), var(--navy-950));
+    }
+    header .t1 { display: block; color: var(--gold); font: italic 600 24px/1.1 Georgia, "Times New Roman", serif; }
+    header .t2 { display: inline-block; margin-top: 8px; padding: 2px 10px; background: var(--red); font-weight: 800; font-size: 13px; }
+    main {
+      position: relative; max-width: 520px; margin: -48px auto 32px; padding: 26px 20px 24px; text-align: center;
+      background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 20px 50px -30px rgba(0,0,0,.45);
+    }
+    @media (max-width: 560px) { main { margin-left: 12px; margin-right: 12px; } }
+    .eyebrow { margin: 0 0 10px; font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--gold-text); }
+    .photo { width: 96px; height: 118px; margin: 0 auto 8px; border-radius: 6px; overflow: hidden; border: 3px solid #fff; box-shadow: 0 6px 16px -8px rgba(0,0,0,.4); background: var(--soft); }
+    .photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    h1 { margin: 0; font-size: 24px; font-weight: 800; color: var(--primary); }
+    .type { display: inline-block; margin: 4px 0 0; padding: 2px 10px; border-radius: 3px; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #fff; background: var(--primary); }
+    .beacon { margin: 22px auto 14px; display: grid; place-items: center; }
+    .big-btn {
+      width: 140px; height: 140px; padding: 0; border-radius: 50%; border: 0; cursor: pointer;
+      display: grid; place-items: center; align-content: center; gap: 4px;
+      font: inherit; font-size: 16px; font-weight: 800; color: #fff; background: var(--primary);
+      box-shadow: 0 0 0 4px var(--gold), 0 0 0 10px var(--tint);
+      -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+    }
+    .big-btn:active { transform: scale(.97); }
+    .big-btn svg { width: 32px; height: 32px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+    .beacon.on .big-btn { background: #fff; color: var(--primary); box-shadow: 0 0 0 3px var(--primary), 0 0 0 10px var(--tint); cursor: default; }
+    .beacon.on.wait .big-btn svg { animation: pulse 1s ease-in-out infinite; }
+    @keyframes pulse { 50% { opacity: .35; } }
+    .status-title { margin: 0; font-size: 18px; font-weight: 800; }
+    .status-sub { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
+    .net { display: inline-flex; align-items: center; gap: 8px; margin: 14px 0 0; padding: 5px 12px; border: 1px solid var(--line); border-radius: 99px; font-size: 13px; font-weight: 600; }
+    .net i { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+    .net.ok i { background: var(--ok); }
+    .net.off i { background: var(--red); }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 20px 0 4px; }
+    .stat { padding: 12px 6px; border: 1px solid var(--line); border-radius: 8px; background: var(--soft); }
+    .stat b { display: block; font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .stat span { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+    .notice { margin: 18px 0 0; padding: 12px 14px; border-radius: 8px; text-align: left; font-size: 13px; line-height: 1.55; background: var(--soft); border: 1px solid var(--line); }
+    .notice.bad { border-color: #f1c4bf; background: #fdf3f2; color: var(--danger); }
+    .stop { margin-top: 18px; font: inherit; font-weight: 600; padding: 11px 22px; border-radius: 99px; border: 1px solid #b8c1d4; background: #fff; color: var(--text); cursor: pointer; }
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+  </style>
+</head>
+<body>
+  <header>
+    <span class="t1">Cérémonie officielle d’inauguration</span>
+    <span class="t2">NTMC – Dargol, Niger · 10 déc. 2026</span>
+  </header>
+
+  <main>
+    <p class="eyebrow">Suivi du badge</p>
+    <div class="photo" id="photo-wrap" hidden><img id="photo" alt="Photo du titulaire" /></div>
+    <h1 id="name">Badge</h1>
+    <p class="type" id="type" hidden></p>
+
+    <div class="beacon" id="beacon">
+      <button type="button" class="big-btn" id="toggle">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.5s7-6.1 7-11.8a7 7 0 1 0-14 0c0 5.7 7 11.8 7 11.8Z"/><circle cx="12" cy="9.7" r="2.6"/></svg>
+        <span id="toggle-label">Démarrer</span>
+      </button>
+    </div>
+
+    <p class="status-title" id="status-title">Suivi à l'arrêt</p>
+    <p class="status-sub" id="status-sub">Appuyez sur « Démarrer ». Fonctionne même avec un réseau faible ou sans réseau : les positions sont gardées sur le téléphone.</p>
+    <p class="net" id="net"><i></i><span id="net-txt">Connexion au serveur…</span></p>
+
+    <div class="stats" id="stats" hidden>
+      <div class="stat"><b id="st-saved">0</b><span>Enregistrées</span></div>
+      <div class="stat"><b id="st-wait">0</b><span>En attente</span></div>
+      <div class="stat"><b id="st-acc">—</b><span>Précision</span></div>
+    </div>
+
+    <p class="notice" id="notice">Gardez cette page ouverte et l'écran allumé pendant l'événement. Vous pouvez arrêter le suivi à tout moment.</p>
+
+    <button type="button" class="stop" id="stop" hidden>Arrêter le suivi</button>
+  </main>
+
+  <script>
+  (() => {
+    "use strict";
+    const qs = new URLSearchParams(location.search);
+    let B = qs.get("b"), T = qs.get("t");
+    // Badge mémorisé sur ce téléphone : sert si l'adresse arrive sans ?b=…&t=…
+    const LAST = "suivi_dernier";
+    try {
+      if (B && T) localStorage.setItem(LAST, JSON.stringify({ b: B, t: T }));
+      else {
+        const l = JSON.parse(localStorage.getItem(LAST) || "null");
+        if (l && l.b && l.t) {
+          B = l.b; T = l.t;
+          history.replaceState(null, "", `${location.pathname}?b=${encodeURIComponent(B)}&t=${encodeURIComponent(T)}`);
+        }
+      }
+    } catch {}
+    const K = (k) => `suivi_${k}_${B}`;     // clés de stockage propres à ce badge
+    const SEND_EVERY = 10000;               // un point toutes les 10 s en mouvement
+    const HEARTBEAT = 30000;                // toutes les 30 s à l'arrêt
+    const MIN_MOVE = 15;                    // mètres
+    const MAX_QUEUE = 6000;                 // ~16 h de points gardés hors ligne
+    const NET_TIMEOUT = 6000;               // réseau faible : on n'attend jamais plus
+
+    const $ = (id) => document.getElementById(id);
+    const beacon = $("beacon"), toggle = $("toggle"), notice = $("notice");
+    const store = {
+      get(k, d) { try { const v = localStorage.getItem(K(k)); return v === null ? d : JSON.parse(v); } catch { return d; } },
+      set(k, v) { try { localStorage.setItem(K(k), JSON.stringify(v)); } catch {} },
+      del(k) { try { localStorage.removeItem(K(k)); } catch {} },
+    };
+
+    let watchId = null, wakeLock = null, sending = false, online = null;
+    let queue = store.get("file", []);      // positions pas encore reçues par le serveur
+    let saved = store.get("total", 0);
+    let lastQueued = queue[queue.length - 1] || null, lastFix = null;
+
+    function setNotice(msg, bad) { notice.textContent = msg; notice.classList.toggle("bad", !!bad); }
+    function renderCounts() { $("st-saved").textContent = saved; $("st-wait").textContent = queue.length; }
+    function setNet(ok) {
+      online = ok;
+      $("net").classList.toggle("ok", ok);
+      $("net").classList.toggle("off", !ok);
+      $("net-txt").textContent = ok
+        ? "Connecté au serveur"
+        : queue.length ? `Réseau faible · ${queue.length} position(s) gardée(s) sur le téléphone` : "Réseau faible · le suivi fonctionne quand même";
+    }
+    function dist(a, b) {
+      const R = 6371000, r = Math.PI / 180;
+      const h = Math.sin((b.lat - a.lat) * r / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin((b.lng - a.lng) * r / 2) ** 2;
+      return 2 * R * Math.asin(Math.sqrt(h));
+    }
+    function fetchT(url, opts = {}, ms = NET_TIMEOUT) {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), ms);
+      return fetch(url, { cache: "no-store", ...opts, signal: ctrl.signal }).finally(() => clearTimeout(timer));
+    }
+
+    if (!B || !T) {
+      $("name").textContent = "Lien invalide";
+      toggle.disabled = true;
+      setNotice("Scannez le QR code de votre badge pour ouvrir cette page.", true);
+      return;
+    }
+
+    // ================= 1. Le bouton marche tout de suite =================
+    function onFix(pos) {
+      if (watchId === null) return;   // réponse arrivée après un arrêt
+      const p = { lat: pos.coords.latitude, lng: pos.coords.longitude, acc: Math.round(pos.coords.accuracy), ts: Date.now() };
+      const muchBetter = lastQueued && p.acc < lastQueued.acc / 2;   // point précis après un point approximatif
+      lastFix = p;
+      beacon.classList.remove("wait");
+      $("status-title").textContent = "Suivi en cours";
+      $("status-sub").textContent = online
+        ? "Votre position est transmise à l'organisation."
+        : "Positions enregistrées sur le téléphone, envoi automatique dès que le réseau le permet.";
+      $("st-acc").textContent = `±${p.acc} m`;
+      if (!lastQueued || muchBetter || p.ts - lastQueued.ts >= SEND_EVERY || dist(lastQueued, p) >= MIN_MOVE) enqueue(p);
+    }
+
+    function onError(err) {
+      if (err.code === 1) {
+        beacon.classList.remove("wait");
+        stop();
+        setNotice("Accès à la position refusé. Autorisez la localisation pour ce site dans les réglages du navigateur, puis réessayez.", true);
+      } else if (!lastFix) {
+        $("status-title").textContent = "Recherche du signal GPS…";
+        $("status-sub").textContent = "Restez à découvert si possible.";
+      }
+    }
+
+    function start() {
+      if (watchId !== null) return;
+      if (!("geolocation" in navigator)) return setNotice("Ce téléphone ne permet pas la localisation.", true);
+      if (!window.isSecureContext) return setNotice("Ouvrez cette page en https:// pour accéder au GPS.", true);
+      const geo = navigator.geolocation;
+      // Position rapide (Wi-Fi, antennes, dernière position connue) + GPS précis en parallèle
+      geo.getCurrentPosition(onFix, () => {}, { enableHighAccuracy: false, maximumAge: 120000, timeout: 2500 });
+      watchId = geo.watchPosition(onFix, onError, { enableHighAccuracy: true, maximumAge: 5000, timeout: 60000 });
+      beacon.classList.add("on", "wait");
+      $("toggle-label").textContent = "Actif";
+      $("status-title").textContent = "Activation…";
+      $("status-sub").textContent = "Localisation en cours.";
+      $("stats").hidden = false;
+      $("stop").hidden = false;
+      store.set("actif", true);
+      setNotice("Gardez cette page ouverte et l'écran allumé pendant l'événement. Vous pouvez arrêter le suivi à tout moment.");
+      keepAwake();
+    }
+
+    function stop() {
+      if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+      watchId = null;
+      flush();
+      try { wakeLock?.release(); } catch {}
+      wakeLock = null;
+      beacon.classList.remove("on", "wait");
+      $("toggle-label").textContent = "Démarrer";
+      $("status-title").textContent = "Suivi à l'arrêt";
+      $("status-sub").textContent = "Appuyez sur « Démarrer » pour reprendre.";
+      $("stop").hidden = true;
+      store.del("actif");
+      setNotice(queue.length
+        ? `Suivi arrêté. ${queue.length} position(s) seront encore envoyées dès que le réseau le permet.`
+        : "Suivi arrêté. L'organisation ne reçoit plus votre position.");
+    }
+
+    async function keepAwake() {
+      try { if ("wakeLock" in navigator && document.visibilityState === "visible") wakeLock = await navigator.wakeLock.request("screen"); } catch {}
+    }
+
+    toggle.addEventListener("click", start);
+    $("stop").addEventListener("click", stop);
+
+    // ================= 2. Envoi en arrière-plan (jamais bloquant) =================
+    async function flush() {
+      if (sending || !queue.length) return;
+      sending = true;
+      const batch = queue.slice(0, 100);
+      try {
+        const r = await fetchT("/api/position", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ b: B, t: T, points: batch }),
+        }, 10000);
+        if (!r.ok) throw new Error(String(r.status));
+        queue.splice(0, batch.length);
+        store.set("file", queue);
+        setNet(true);
+        if (queue.length) setTimeout(flush, 200);   // vider le reste du retard
+      } catch {
+        setNet(false);
+      } finally {
+        sending = false;
+        renderCounts();
+      }
+    }
+
+    function enqueue(p) {
+      queue.push(p);
+      if (queue.length > MAX_QUEUE) queue.splice(0, queue.length - MAX_QUEUE);
+      lastQueued = p;
+      saved++;
+      store.set("file", queue);
+      store.set("total", saved);
+      renderCounts();
+      flush();
+    }
+
+    addEventListener("online", flush);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible" && watchId !== null) { keepAwake(); flush(); }
+    });
+    // À l'arrêt le GPS ne renvoie rien : on répète la dernière position ; et on retente l'envoi
+    setInterval(() => {
+      if (watchId !== null && lastFix && (!lastQueued || Date.now() - lastQueued.ts >= HEARTBEAT)) {
+        enqueue({ ...lastFix, ts: Date.now() });
+      }
+      flush();
+    }, 5000);
+
+    // Reprise automatique si le suivi était actif (page rechargée, téléphone redémarré…)
+    renderCounts();
+    if (store.get("actif", false)) start();
+
+    // ================= 3. Infos du badge : copie locale d'abord, serveur ensuite =================
+    function showBadge(d) {
+      $("name").textContent = `${d.prenom} ${d.nom}`;
+      if (d.type_label) { $("type").textContent = d.type_label; $("type").hidden = false; }
+      if (d.photo) { $("photo").src = d.photo; $("photo-wrap").hidden = false; }
+    }
+    const cached = store.get("badge", null);
+    if (cached) showBadge(cached);
+    else $("name").textContent = B;
+
+    fetchT(`/api/badge?b=${encodeURIComponent(B)}&t=${encodeURIComponent(T)}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+      .then((d) => {
+        setNet(true);
+        d.photo = cached?.photo;
+        store.set("badge", d);
+        showBadge(d);
+        // Photo : seulement si on ne l'a pas déjà, et après le démarrage (priorité aux positions)
+        if (!d.photo) setTimeout(() => {
+          fetchT(`/api/photo?b=${encodeURIComponent(B)}&t=${encodeURIComponent(T)}`, {}, 15000)
+            .then((r) => (r.ok ? r.blob() : null))
+            .then((blob) => {
+              if (!blob || !blob.size || !blob.type.startsWith("image/")) return;
+              const fr = new FileReader();
+              fr.onload = () => { d.photo = fr.result; store.set("badge", d); showBadge(d); };
+              fr.readAsDataURL(blob);
+            })
+            .catch(() => {});
+        }, 3000);
+      })
+      .catch((code) => {
+        setNet(false);
+        if (code === 404 && !cached) setNotice("Ce badge est inconnu du serveur. Vous pouvez quand même démarrer : les positions seront envoyées plus tard.", true);
+      });
+
+    // ================= 4. Page gardée sur le téléphone pour les prochaines ouvertures =================
+    if ("serviceWorker" in navigator) {
+      addEventListener("load", () => setTimeout(() => navigator.serviceWorker.register("sw.js").catch(() => {}), 1500));
+    }
+  })();
+  </script>
+</body>
+</html>

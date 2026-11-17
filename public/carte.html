@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Carte de suivi</title>
+  <link rel="stylesheet" href="fonts/fonts.css" />
+  <link rel="stylesheet" href="vendor/leaflet.min.css" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body { display: block; padding: 0; height: 100vh; overflow: hidden; }
+    .app { display: grid; grid-template-columns: 360px 1fr; height: 100vh; }
+    .side {
+      display: flex; flex-direction: column; min-height: 0;
+      border-right: 1.5px solid var(--line); background: var(--surface-solid);
+      animation: rise 0.8s var(--ease-out) both;
+    }
+    .side-head { padding: 22px 20px 14px; border-bottom: 1.5px solid var(--line); }
+    .side-head h1 { font-size: 24px; }
+    .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 16px 0 14px; }
+    .kpi { padding: 10px; border-radius: 14px; border: 1.5px solid var(--line); background: var(--field); }
+    .kpi b { display: block; font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .kpi span { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .kpi.live b { color: var(--ok); }
+    .search { width: 100%; }
+    .list { list-style: none; margin: 0; padding: 8px; overflow-y: auto; flex: 1; }
+    .person {
+      display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 16px; cursor: pointer;
+      transition: background 0.25s, transform 0.3s var(--ease-spring);
+    }
+    .list.intro .person { animation: field-in 0.5s var(--ease-out) both; }
+    .person:hover { background: color-mix(in srgb, var(--text) 5%, transparent); transform: translateX(3px); }
+    .person.sel { background: color-mix(in srgb, var(--accent-hi) 10%, transparent); }
+    .avatar {
+      position: relative; flex: none; width: 44px; height: 44px; border-radius: 50%;
+      background: color-mix(in srgb, var(--accent-hi) 14%, var(--field)); color: var(--accent);
+      display: grid; place-items: center; font-weight: 800; font-size: 14px;
+    }
+    .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+    .avatar::after {
+      content: ""; position: absolute; right: -1px; bottom: -1px; width: 13px; height: 13px; border-radius: 50%;
+      border: 2.5px solid var(--surface-solid); background: #b8b2b5;
+    }
+    .s-live .avatar::after { background: var(--ok); }
+    .s-recent .avatar::after { background: #e39b2d; }
+    .p-info { flex: 1; min-width: 0; }
+    .p-info strong { display: block; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .p-info small { display: block; font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ago { font-size: 12px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .s-live .ago { color: var(--ok); }
+    .empty { padding: 30px 16px; text-align: center; color: var(--muted); font-size: 14px; }
+
+    .map-wrap { position: relative; min-height: 0; }
+    #map { position: absolute; inset: 0; }
+    .map-tools { position: absolute; z-index: 500; top: 14px; right: 14px; display: flex; gap: 8px; }
+    .map-tools button { background: var(--surface-solid); box-shadow: 0 8px 24px -12px rgba(0,0,0,.35); padding: 10px 16px; font-size: 14px; }
+    .refresh { position: absolute; z-index: 500; left: 14px; bottom: 14px; padding: 8px 12px; border-radius: 99px; font-size: 12px; font-weight: 700; background: var(--surface-solid); box-shadow: 0 8px 24px -12px rgba(0,0,0,.35); }
+    .refresh .live-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--ok); margin-right: 6px; animation: blink 1.4s ease-in-out infinite; }
+    .refresh.off .live-dot { background: var(--danger); animation: none; }
+
+    /* Marqueurs */
+    .pm { position: relative; width: 46px; height: 46px; }
+    .pm .ring { position: absolute; inset: 0; border-radius: 50%; padding: 3px; background: #b8b2b5; box-shadow: 0 8px 18px -6px rgba(0,0,0,.45); transition: transform .3s var(--ease-spring); }
+    .pm .ring > * { width: 100%; height: 100%; border-radius: 50%; display: grid; place-items: center; object-fit: cover; background: #fff; color: var(--accent); font: 800 13px "Plus Jakarta Sans", sans-serif; border: 2px solid #fff; }
+    .pm.s-live .ring { background: var(--ok); }
+    .pm.s-recent .ring { background: #e39b2d; }
+    .pm.s-live::before { content: ""; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid var(--ok); animation: ring 1.8s var(--ease-out) infinite; }
+    .pm.sel .ring { transform: scale(1.2); background: linear-gradient(135deg, var(--accent), var(--accent-hi)); }
+    .leaflet-div-icon { background: none; border: 0; }
+    .leaflet-popup-content-wrapper { border-radius: 16px; font-family: "Plus Jakarta Sans", sans-serif; }
+    .pop strong { display: block; font-size: 15px; }
+    .pop span { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+
+    /* Clé */
+    .gate { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 16px; background: var(--bg); }
+    .gate .card { width: min(420px, 100%); }
+    .gate form { display: grid; gap: 12px; }
+
+    @media (max-width: 760px) {
+      body { overflow: auto; height: auto; }
+      .app { grid-template-columns: 1fr; grid-template-rows: 55vh auto; height: auto; }
+      .map-wrap { grid-row: 1; }
+      .side { grid-row: 2; border-right: 0; }
+      .list { overflow: visible; }
+    }
+  </style>
+</head>
+<body>
+  <div class="gate" id="gate" hidden>
+    <div class="card">
+      <p class="eyebrow">Espace organisateur</p>
+      <h2>Clé d'accès</h2>
+      <form id="gate-form">
+        <input id="gate-key" type="password" autocomplete="off" placeholder="Clé affichée au lancement du serveur" required />
+        <p class="error" id="gate-err" aria-live="polite"></p>
+        <button class="primary" type="submit">Ouvrir la carte</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="app">
+    <aside class="side">
+      <div class="side-head">
+        <p class="eyebrow">Suivi en direct</p>
+        <h1>Carte des badges</h1>
+        <div class="kpis">
+          <div class="kpi"><b id="k-total">0</b><span>Inscrits</span></div>
+          <div class="kpi live"><b id="k-live">0</b><span>En direct</span></div>
+          <div class="kpi"><b id="k-off">0</b><span>Hors ligne</span></div>
+        </div>
+        <input class="search" id="search" type="text" placeholder="Rechercher un nom, une organisation…" />
+      </div>
+      <ul class="list" id="list"></ul>
+    </aside>
+    <section class="map-wrap">
+      <div id="map"></div>
+      <div class="map-tools">
+        <button type="button" id="fit">Tout afficher</button>
+      </div>
+      <div class="refresh" id="refresh"><span class="live-dot"></span><span id="refresh-txt">Connexion…</span></div>
+    </section>
+  </div>
+
+  <script src="vendor/leaflet.min.js"></script>
+  <script>
+  (() => {
+    "use strict";
+    const LIVE = 60 * 1000;        // vu il y a moins d'1 min : en direct
+    const RECENT = 5 * 60 * 1000;  // moins de 5 min : récent
+    const $ = (id) => document.getElementById(id);
+
+    let KEY = new URLSearchParams(location.search).get("key");
+    try { KEY = KEY || sessionStorage.getItem("cle_orga"); } catch {}
+
+    const map = L.map("map", { zoomControl: true }).setView([13.5128, 2.1126], 13);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19, attribution: "&copy; OpenStreetMap",
+    }).addTo(map);
+
+    const markers = new Map();   // id -> { marker, circle }
+    let people = [], selected = null, trailLine = null, fitted = false, serverOffset = 0;
+
+    const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    const initials = (p) => ((p.prenom || "?")[0] + (p.nom || "")[0]).toUpperCase();
+    const photoUrl = (p) => `/api/photo?b=${encodeURIComponent(p.id)}&key=${encodeURIComponent(KEY)}`;
+    const now = () => Date.now() + serverOffset;
+    function status(p) {
+      if (!p.last) return "none";
+      const age = now() - p.last.ts;
+      return age < LIVE ? "live" : age < RECENT ? "recent" : "off";
+    }
+    function ago(p) {
+      if (!p.last) return "jamais";
+      const s = Math.max(0, Math.round((now() - p.last.ts) / 1000));
+      if (s < 60) return `${s} s`;
+      if (s < 3600) return `${Math.floor(s / 60)} min`;
+      return `${Math.floor(s / 3600)} h`;
+    }
+    function avatarHtml(p) {
+      return p.hasPhoto ? `<img src="${photoUrl(p)}" alt="">` : `<span>${esc(initials(p))}</span>`;
+    }
+
+    // ---- Marqueurs ----
+    function iconFor(p) {
+      return L.divIcon({
+        className: "",
+        html: `<div class="pm s-${status(p)}${selected === p.id ? " sel" : ""}"><div class="ring">${avatarHtml(p)}</div></div>`,
+        iconSize: [46, 46], iconAnchor: [23, 23], popupAnchor: [0, -26],
+      });
+    }
+    function popupHtml(p) {
+      return `<div class="pop"><strong>${esc(p.prenom)} ${esc(p.nom)}</strong>
+        <span>${esc(p.type_label)}${p.organisation ? " · " + esc(p.organisation) : ""}</span>
+        <span>Vu il y a ${ago(p)} · précision ±${p.last.acc} m</span>
+        <span>${esc(p.telephone)}</span></div>`;
+    }
+    function syncMarkers() {
+      const seen = new Set();
+      for (const p of people) {
+        if (!p.last) continue;
+        seen.add(p.id);
+        const ll = [p.last.lat, p.last.lng];
+        let m = markers.get(p.id);
+        if (!m) {
+          const marker = L.marker(ll, { icon: iconFor(p) }).addTo(map).bindPopup(popupHtml(p));
+          marker.on("click", () => select(p.id, false));
+          const circle = L.circle(ll, { radius: p.last.acc, color: "#0b5d3b", weight: 1, fillOpacity: 0.06 }).addTo(map);
+          m = { marker, circle, st: status(p) };
+          markers.set(p.id, m);
+        } else {
+          m.marker.setLatLng(ll);
+          m.circle.setLatLng(ll).setRadius(p.last.acc);
+          const el = m.marker.getElement()?.querySelector(".pm");
+          if (el) { el.className = `pm s-${status(p)}${selected === p.id ? " sel" : ""}`; }
+          m.marker.setPopupContent(popupHtml(p));
+        }
+      }
+      for (const [id, m] of markers) {
+        if (!seen.has(id)) { m.marker.remove(); m.circle.remove(); markers.delete(id); }
+      }
+      if (selected) drawTrail();
+    }
+    function drawTrail() {
+      trailLine?.remove();
+      const p = people.find((x) => x.id === selected);
+      if (!p || !p.trail?.length) return;
+      trailLine = L.polyline(p.trail.map((t) => [t.lat, t.lng]), { color: "#0b5d3b", weight: 4, opacity: 0.75, dashArray: "1 8", lineCap: "round" }).addTo(map);
+    }
+    function fitAll() {
+      const pts = people.filter((p) => p.last).map((p) => [p.last.lat, p.last.lng]);
+      if (pts.length === 1) map.setView(pts[0], 17);
+      else if (pts.length) map.fitBounds(pts, { padding: [60, 60], maxZoom: 17 });
+    }
+
+    // ---- Liste ----
+    function renderList() {
+      const q = $("search").value.trim().toLowerCase();
+      const order = { live: 0, recent: 1, off: 2, none: 3 };
+      const rows = people
+        .filter((p) => !q || `${p.prenom} ${p.nom} ${p.organisation} ${p.type_label}`.toLowerCase().includes(q))
+        .sort((a, b) => order[status(a)] - order[status(b)] || (b.last?.ts || 0) - (a.last?.ts || 0));
+      $("list").replaceChildren(...rows.map((p, i) => {
+        const li = document.createElement("li");
+        li.className = `person s-${status(p)}${selected === p.id ? " sel" : ""}`;
+        li.dataset.id = p.id;
+        li.style.animationDelay = Math.min(i, 12) * 0.03 + "s";
+        li.innerHTML = `<span class="avatar">${avatarHtml(p)}</span>
+          <span class="p-info"><strong>${esc(p.prenom)} ${esc(p.nom)}</strong><small>${esc(p.type_label)}${p.organisation ? " · " + esc(p.organisation) : ""}</small></span>
+          <span class="ago">${p.last ? ago(p) : "—"}</span>`;
+        li.addEventListener("click", () => select(p.id, true));
+        return li;
+      }));
+      if (!rows.length) $("list").innerHTML = `<li class="empty">${people.length ? "Aucun résultat." : "Aucune inscription pour l'instant."}</li>`;
+      const st = people.map(status);
+      $("k-total").textContent = people.length;
+      $("k-live").textContent = st.filter((s) => s === "live").length;
+      $("k-off").textContent = st.filter((s) => s !== "live").length;
+    }
+
+    function select(id, fly) {
+      selected = selected === id && !fly ? selected : id;
+      const p = people.find((x) => x.id === id);
+      renderList(); syncMarkers();
+      if (p?.last) {
+        if (fly) map.flyTo([p.last.lat, p.last.lng], Math.max(map.getZoom(), 17), { duration: 0.8 });
+        markers.get(id)?.marker.openPopup();
+      }
+    }
+
+    // ---- Rafraîchissement ----
+    async function load() {
+      try {
+        const r = await fetch(`/api/live?key=${encodeURIComponent(KEY)}`, { cache: "no-store" });
+        if (r.status === 401) return askKey("Clé invalide.");
+        if (!r.ok) throw new Error();
+        const j = await r.json();
+        serverOffset = j.now - Date.now();
+        people = Array.isArray(j.people) ? j.people : [];
+        try { sessionStorage.setItem("cle_orga", KEY); } catch {}
+        $("gate").hidden = true;
+        if (!fitted) { $("list").classList.add("intro"); setTimeout(() => $("list").classList.remove("intro"), 1200); }
+        syncMarkers(); renderList();
+        if (!fitted && people.some((p) => p.last)) fitAll();
+        fitted = fitted || people.some((p) => p.last);
+        $("refresh").classList.remove("off");
+        $("refresh-txt").textContent = "Mise à jour " + new Date().toLocaleTimeString("fr-FR");
+      } catch {
+        $("refresh").classList.add("off");
+        $("refresh-txt").textContent = "Serveur injoignable, nouvelle tentative…";
+      }
+    }
+
+    function askKey(msg) {
+      $("gate").hidden = false;
+      $("gate-err").textContent = msg || "";
+      $("gate-key").focus();
+    }
+    $("gate-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      KEY = $("gate-key").value.trim();
+      load();
+    });
+
+    $("search").addEventListener("input", renderList);
+    $("fit").addEventListener("click", fitAll);
+
+    if (!KEY) askKey(); else load();
+    setInterval(() => { if (KEY && $("gate").hidden) load(); }, 4000);
+    // Chaque seconde : seulement le « vu il y a »
+    setInterval(() => {
+      for (const li of $("list").querySelectorAll(".person")) {
+        const p = people.find((x) => x.id === li.dataset.id);
+        if (p?.last) li.querySelector(".ago").textContent = ago(p);
+      }
+    }, 1000);
+  })();
+  </script>
+</body>
+</html>

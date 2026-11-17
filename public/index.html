@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Accréditation – Cérémonie d’inauguration NTMC</title>
+  <link rel="stylesheet" href="fonts/fonts.css" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="vendor/qrcode.min.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="layout">
+    <!-- Panneau photo -->
+    <aside class="showcase">
+      <div class="showcase-inner">
+        <!-- Bandeau de patronage -->
+        <div class="patronage">
+          <img src="images/embleme_niger.jpg" alt="Armoiries de la République du Niger" />
+          <p>Sous le Haut Patronage de leurs Excellences <strong>Le Général d’Armée Abdourahamane Tiani</strong>, Président de la République, Chef de l’Etat,
+            <strong>Recep Tayyip Erdoğan</strong>, président de la République de Turquie</p>
+          <img src="images/embleme_turquie.jpg" alt="Emblème de la République de Turquie" />
+        </div>
+
+        <!-- Titre -->
+        <div class="showcase-text">
+          <h1>
+            <span class="script">Cérémonie officielle</span>
+            <span class="bold" id="event-name">d’inauguration</span>
+          </h1>
+          <span class="tag">NTMC – Dargol, Niger</span>
+        </div>
+
+        <!-- Portraits et logo sur le filet doré -->
+        <div class="stage">
+          <img class="portrait left" src="images/tiani.jpg" alt="Général d’Armée Abdourahamane Tiani" />
+          <div class="shield"><div class="shield-inner">
+            <img src="images/logo_ntmc.jpg" alt="Niger Türkiye Mining Company – Strength in Unity" />
+          </div></div>
+          <img class="portrait right" src="images/erdogan.jpg" alt="Recep Tayyip Erdoğan" />
+        </div>
+
+        <!-- Date et lieu -->
+        <p class="meta" id="event-meta">
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M7 14h2M11 14h2M15 14h2M7 18h2M11 18h2"/></svg>
+            10 Décembre 2026
+          </span>
+          <span class="sep" aria-hidden="true"></span>
+          <span>
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.3 7 13 7 13s7-7.7 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>
+            Boubéné Dargol
+          </span>
+        </p>
+      </div>
+    </aside>
+
+    <!-- Formulaire -->
+    <main class="card">
+      <header class="form-head">
+        <p class="eyebrow">Demande d'accréditation</p>
+        <h2 class="form-title">Participation à l'événement</h2>
+        <p class="form-intro">Les champs marqués d'un astérisque (*) sont obligatoires. Votre demande sera examinée par le service du protocole.</p>
+      </header>
+
+      <div class="progress" role="progressbar" aria-valuemin="1" aria-valuemax="5" aria-valuenow="1" aria-label="Progression">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+      <ol class="steps" id="steps">
+        <li class="is-current"><span class="num">1</span><span class="lbl">Profil</span></li>
+        <li><span class="num">2</span><span class="lbl">Identité</span></li>
+        <li><span class="num">3</span><span class="lbl">Rattachement</span></li>
+        <li><span class="num">4</span><span class="lbl">Zones</span></li>
+        <li><span class="num">5</span><span class="lbl">Validation</span></li>
+      </ol>
+
+      <form id="form" novalidate>
+        <!-- Étape 1 : profil et accès -->
+        <section class="step is-active" data-step="1">
+          <h3>Votre profil</h3>
+          <div class="field">
+            <label for="type">Profil *</label>
+            <select id="type" name="type" required>
+              <option value="">Choisir</option>
+              <option value="officiel">Autorité ou officiel</option>
+              <option value="presse">Presse</option>
+              <option value="invite">Invité</option>
+              <option value="prestataire">Prestataire</option>
+              <option value="personnel">Personnel</option>
+            </select>
+            <p class="error" aria-live="polite"></p>
+          </div>
+
+          <fieldset class="field" data-group-required>
+            <legend>Mode d'arrivée *</legend>
+            <div class="transport">
+              <label class="tcard">
+                <input type="radio" name="acces" value="vehicule" />
+                <span class="tcard-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M5 17h14M3 17v-4.5l2.2-5A2 2 0 0 1 7 6.3h10a2 2 0 0 1 1.8 1.2l2.2 5V17"/><path d="M3 12.5h18"/><circle cx="7.5" cy="17.5" r="1.8"/><circle cx="16.5" cy="17.5" r="1.8"/></svg>
+                </span>
+                <span class="tcard-text">
+                  <span class="tcard-title">Véhicule personnel</span>
+                  <span class="tcard-sub">Stationnement sur site, 3 personnes à bord au maximum</span>
+                </span>
+                <span class="tcard-check" aria-hidden="true"></span>
+              </label>
+              <label class="tcard">
+                <input type="radio" name="acces" value="commun" />
+                <span class="tcard-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><rect x="4" y="3.5" width="16" height="14" rx="2.5"/><path d="M4 11h16M8 17.5V20M16 17.5V20"/><circle cx="8" cy="14.3" r="1"/><circle cx="16" cy="14.3" r="1"/></svg>
+                </span>
+                <span class="tcard-text">
+                  <span class="tcard-title">Transport en commun</span>
+                  <span class="tcard-sub">Navette, bus ou taxi, dépose à l'entrée</span>
+                </span>
+                <span class="tcard-check" aria-hidden="true"></span>
+              </label>
+            </div>
+            <p class="error" aria-live="polite"></p>
+          </fieldset>
+
+          <div class="field reveal" data-show-if="acces:vehicule">
+            <label for="plaque">Immatriculation du véhicule *</label>
+            <input id="plaque" name="plaque" type="text" autocomplete="off" placeholder="Ex. 8A 1234 RN" style="text-transform: uppercase" required />
+            <p class="error" aria-live="polite"></p>
+          </div>
+
+          <div class="field reveal" data-show-if="acces:vehicule">
+            <label for="passagers">Personnes à bord, conducteur compris (3 maximum) *</label>
+            <div class="stepper">
+              <button type="button" class="st-btn" data-delta="-1" aria-label="Retirer une personne">−</button>
+              <input id="passagers" name="passagers" type="number" min="1" max="3" value="1" inputmode="numeric" required />
+              <button type="button" class="st-btn" data-delta="1" aria-label="Ajouter une personne">+</button>
+              <span class="seats" aria-hidden="true"><i></i><i></i><i></i></span>
+            </div>
+            <p class="error" aria-live="polite"></p>
+          </div>
+
+          <div class="field reveal" data-show-if="acces:commun">
+            <label for="transport_type">Moyen de transport *</label>
+            <select id="transport_type" name="transport_type" required>
+              <option value="">Choisir</option>
+              <option>Navette de l'organisation</option>
+              <option>Bus ou car</option>
+              <option>Taxi ou VTC</option>
+            </select>
+            <p class="error" aria-live="polite"></p>
+          </div>
+
+          <div class="field geo-field">
+            <span class="label">Localisation *</span>
+            <button type="button" class="geo-btn" id="geo-btn" aria-describedby="geo-sub">
+              <span class="geo-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 21.5s7-6.1 7-11.8a7 7 0 1 0-14 0c0 5.7 7 11.8 7 11.8Z"/><circle cx="12" cy="9.7" r="2.6"/></svg>
+              </span>
+              <span class="geo-text">
+                <strong id="geo-title">Activer la localisation</strong>
+                <small id="geo-sub">Nécessaire pour le suivi d'accès le jour de l'événement</small>
+              </span>
+              <span class="switch" aria-hidden="true"></span>
+            </button>
+            <input type="hidden" name="geo_lat" id="geo_lat" required />
+            <input type="hidden" name="geo_lng" id="geo_lng" />
+            <input type="hidden" name="geo_acc" id="geo_acc" />
+            <p class="error" aria-live="polite"></p>
+          </div>
+        </section>
+
+        <!-- Étape 2 : identité -->
+        <section class="step" data-step="2">
+          <h3>Identité</h3>
+          <div class="field photo-field">
+            <span class="label">Photo du titulaire *</span>
+            <label class="dropzone" id="dropzone">
+              <input type="file" id="photo_file" accept="image/*" />
+              <span class="dz-preview" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="4"/><path d="M4.5 20.5c1.2-3.8 4-5.7 7.5-5.7s6.3 1.9 7.5 5.7"/></svg>
+                <img id="photo-img" alt="" hidden />
+              </span>
+              <span class="dz-text">
+                <strong id="dz-title">Ajouter une photo</strong>
+                <small>Photo d'identité récente, de face, fond clair. Cliquez ou glissez-déposez une image.</small>
+              </span>
+              <span class="dz-cta" aria-hidden="true">Parcourir</span>
+            </label>
+            <input type="hidden" name="photo" id="photo" required />
+            <p class="error" aria-live="polite"></p>
+          </div>
+
+          <div class="grid-2">
+            <div class="field">
+              <label for="civilite">Civilité *</label>
+              <select id="civilite" name="civilite" required>
+                <option value="">Choisir</option>
+                <option>Monsieur</option>
+                <option>Madame</option>
+              </select>
+              <p class="error" aria-live="polite"></p>
+            </div>
+            <div class="field">
+              <label for="prenom">Prénom *</label>
+              <input id="prenom" name="prenom" type="text" autocomplete="given-name" required />
+              <p class="error" aria-live="polite"></p>
+            </div>
+            <div class="field">
+              <label for="nom">Nom *</label>
+              <input id="nom" name="nom" type="text" autocomplete="family-name" required />
+              <p class="error" aria-live="polite"></p>
+            </div>
+            <div class="field">
+              <label for="telephone">Téléphone *</label>
+              <input id="telephone" name="telephone" type="tel" autocomplete="tel" placeholder="+227 00 00 00 00" required />
+              <p class="error" aria-live="polite"></p>
+            </div>
+            <div class="field">
+              <label for="email">E-mail *</label>
+              <input id="email" name="email" type="email" autocomplete="email" required />
+              <p class="error" aria-live="polite"></p>
+            </div>
+            <div class="field">
+              <label for="email_confirm">Confirmer l'e-mail *</label>
+              <input id="email_confirm" name="email_confirm" type="email" autocomplete="off" required />
+              <p class="error" aria-live="polite"></p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Étape 3 : rattachement -->
+        <section class="step" data-step="3">
+          <h3>Rattachement</h3>
+          <div class="grid-2">
+            <div class="field">
+              <label for="organisation">Institution ou société *</label>
+              <input id="organisation" name="organisation" type="text" required />
+              <p class="error" aria-live="polite"></p>
+            </div>
+            <div class="field">
+              <label for="fonction">Fonction *</label>
+              <input id="fonction" name="fonction" type="text" required />
+              <p class="error" aria-live="polite"></p>
+            </div>
+          </div>
+
+          <div class="field" data-show-if="type:prestataire">
+            <label for="ref_contrat">Référence du contrat ou du bon de commande *</label>
+            <input id="ref_contrat" name="ref_contrat" type="text" autocomplete="off" required />
+            <p class="error" aria-live="polite"></p>
+          </div>
+          <div class="field" data-show-if="type:presse">
+            <label for="carte_presse">Numéro de carte de presse *</label>
+            <input id="carte_presse" name="carte_presse" type="text" autocomplete="off" required />
+            <p class="error" aria-live="polite"></p>
+          </div>
+          <div class="field" data-show-if="type:officiel">
+            <label for="accompagnants">Accompagnants (maximum 3) *</label>
+            <input id="accompagnants" name="accompagnants" type="number" min="0" max="3" value="0" required />
+            <p class="error" aria-live="polite"></p>
+          </div>
+          <div class="field" data-show-if="type:personnel">
+            <label for="matricule">Matricule *</label>
+            <input id="matricule" name="matricule" type="text" autocomplete="off" required />
+            <p class="error" aria-live="polite"></p>
+          </div>
+        </section>
+
+        <!-- Étape 4 : zones -->
+        <section class="step" data-step="4">
+          <h3>Zones demandées</h3>
+          <fieldset class="field" data-group-required>
+            <legend>Zones publiques *</legend>
+            <div class="chips">
+              <label class="chip"><input type="checkbox" name="zones" value="tribune" data-multi /><span>Tribune</span></label>
+              <label class="chip"><input type="checkbox" name="zones" value="visite" data-multi /><span>Visite de l'usine</span></label>
+              <label class="chip"><input type="checkbox" name="zones" value="presse" data-multi /><span>Salle de presse</span></label>
+            </div>
+            <p class="error" aria-live="polite"></p>
+          </fieldset>
+
+          <fieldset class="field" data-show-if="type:prestataire|personnel" data-group-required>
+            <legend>Zones techniques *</legend>
+            <div class="chips">
+              <label class="chip"><input type="checkbox" name="zones_tech" value="atelier" data-multi /><span>Atelier</span></label>
+              <label class="chip"><input type="checkbox" name="zones_tech" value="quai" data-multi /><span>Quai de livraison</span></label>
+            </div>
+            <p class="error" aria-live="polite"></p>
+          </fieldset>
+
+          <div class="field">
+            <label for="demande">Demande particulière</label>
+            <textarea id="demande" name="demande" rows="3" placeholder="Accessibilité, besoin logistique, autre"></textarea>
+          </div>
+        </section>
+
+        <!-- Étape 5 : validation -->
+        <section class="step" data-step="5">
+          <h3>Vérifiez puis confirmez</h3>
+          <dl class="summary" id="summary"></dl>
+
+          <div class="field">
+            <label class="check"><input type="checkbox" name="consent" required /><span>J'accepte le règlement d'accès au site, que mes données servent uniquement à mon accès et à mon badge, et que ma position soit partagée avec l'organisation le jour de l'événement, uniquement lorsque j'active le suivi sur mon téléphone. *</span></label>
+            <p class="error" aria-live="polite"></p>
+          </div>
+        </section>
+
+        <div class="actions">
+          <button type="button" class="ghost" id="prev">Retour</button>
+          <button type="button" class="primary" id="next">Continuer</button>
+        </div>
+      </form>
+
+      <!-- Badge généré après confirmation -->
+      <section class="badge-view" id="badge-view" hidden>
+        <svg class="success" viewBox="0 0 52 52" aria-hidden="true">
+          <circle cx="26" cy="26" r="24" />
+          <path d="M15 27l7 7 15-16" />
+        </svg>
+        <p class="eyebrow">Demande enregistrée</p>
+        <div class="badge" id="badge">
+          <div class="badge-band">
+            <span class="badge-script">Cérémonie officielle</span>
+            <span class="badge-event" id="badge-event"></span>
+            <span class="badge-date">10 déc. 2026 · Boubéné Dargol</span>
+          </div>
+          <div class="badge-photo"><img id="badge-photo" alt="Photo du titulaire" /></div>
+          <p class="badge-name" id="badge-name"></p>
+          <p class="badge-type" id="badge-type"></p>
+          <div class="qr-geo" id="qr-geo">
+            <div class="qr" id="qr"></div>
+          </div>
+          <p class="badge-id" id="badge-id"></p>
+          <a class="geo-link" id="geo-link" target="_blank" rel="noopener"></a>
+        </div>
+        <p class="hint">Présentez ce QR code à l'entrée le 10 décembre 2026.</p>
+        <div class="actions">
+          <button type="button" class="ghost" id="print">Imprimer le badge</button>
+          <button type="button" class="ghost" id="export" hidden>Exporter (organisateur)</button>
+        </div>
+      </section>
+
+      <footer class="form-foot">Vos données sont traitées uniquement pour l'organisation de l'événement.</footer>
+    </main>
+  </div>
+</body>
+</html>
